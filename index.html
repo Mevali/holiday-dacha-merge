@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#142834" />
+  <title>Новогодняя дача: Объединяй и Строй</title>
+  <script src="src/vk-bridge.min.js"></script>
+  <link rel="icon" href="data:;base64,iVBORw0KGgo=" />
+  <link rel="stylesheet" href="src/styles.css" />
+</head>
+<body>
+  <div id="app" class="app-shell">
+    <!-- Top Glossy Status Bar -->
+    <header class="top-hud">
+      <div class="hud-pills-left">
+        <button id="btn-stars-pill" class="hud-pill pill-stars" type="button" aria-label="Stars">
+          <span class="pill-glyph">★</span>
+          <span id="stars-value" class="pill-val">0</span>
+        </button>
+
+        <button id="btn-energy-pill" class="hud-pill pill-energy" type="button" aria-label="Energy">
+          <span class="energy-track">
+            <span id="energy-liquid-fill" class="energy-liquid-fill" style="width: 100%"></span>
+          </span>
+          <span class="pill-glyph bolt-glyph">⚡</span>
+          <span id="energy-value" class="pill-val">65/65</span>
+          <span id="energy-timer" class="energy-timer hidden">+1:90s</span>
+          <span class="pill-plus-btn">+</span>
+        </button>
+
+        <div id="coins-pill" class="hud-pill pill-coins">
+          <span class="gold-coin-ic"></span>
+          <span id="coins-value" class="pill-val">60</span>
+        </div>
+      </div>
+
+      <div class="hud-pills-right">
+        <button id="btn-daily" class="hud-icon-btn daily-hud-btn" type="button" aria-label="Daily Gifts">
+          <span>🎁</span>
+          <span id="daily-notify-dot" class="notify-dot hidden"></span>
+        </button>
+        <button id="btn-leaderboard" class="hud-icon-btn lb-hud-btn" type="button" aria-label="Leaderboard">
+          <span>🏆</span>
+          <span id="lb-rank-label" class="lb-rank-chip">#19</span>
+          <span id="lb-notify-dot" class="notify-dot hidden"></span>
+        </button>
+        <button id="btn-sound" class="hud-icon-btn" type="button" aria-label="Sound">
+          <span id="sound-icon">🔊</span>
+        </button>
+        <button id="btn-help" class="hud-icon-btn help-icon-btn" type="button" aria-label="Help">?</button>
+        <button id="btn-lang" class="hud-icon-btn lang-toggle-btn" type="button" aria-label="Language">
+          <span id="lang-label">RU</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Responsive Play Area -->
+    <main class="play-layout">
+      <!-- Left / Top Column: Interactive Dacha Strip + Streak + Neighbor Orders -->
+      <section class="left-story-col">
+        <div id="dacha-preview-card" class="dacha-preview-card">
+          <canvas id="dacha-strip-canvas" class="dacha-strip-canvas"></canvas>
+          <div class="dacha-strip-overlay">
+            <div class="dacha-strip-info">
+              <span id="dacha-progress-text" class="dacha-prog-badge">🏡 Дача: 0/10</span>
+              <span id="dacha-next-name" class="dacha-next-label">🔥 Тепло камина и окна</span>
+            </div>
+            <button id="btn-open-dacha" class="tactile-btn btn-amber dacha-cta-btn" type="button">
+              <span>🏡</span>
+              <span id="btn-open-dacha-text">Строить</span>
+              <span id="dacha-notify-dot" class="notify-dot hidden"></span>
+            </button>
+          </div>
+        </div>
+
+        <div class="orders-section">
+          <div class="streak-ribbon">
+            <span class="streak-gift-icon">🎁</span>
+            <span id="streak-title" class="streak-title-text">До Новогоднего ларца</span>
+            <div class="streak-bar-track">
+              <div id="streak-bar-fill" class="streak-bar-fill" style="width: 0%"></div>
+            </div>
+            <span id="streak-count-text" class="streak-num-badge">0/4</span>
+          </div>
+
+          <div id="orders-grid" class="orders-grid"></div>
+        </div>
+      </section>
+
+      <!-- Right / Bottom Column: 7x8 Merge Board + Item Info & Action Dock -->
+      <section class="right-board-col">
+        <div id="board-stage-wrap" class="board-stage-wrap">
+          <div id="merge-board-grid" class="merge-board-grid"></div>
+          <canvas id="fx-canvas" class="fx-canvas"></canvas>
+
+          <div id="drag-ghost" class="drag-ghost hidden">
+            <img id="drag-ghost-img" alt="" draggable="false" />
+          </div>
+
+          <div id="game-toast" class="game-toast hidden"></div>
+        </div>
+
+        <footer class="bottom-action-dock">
+          <button id="btn-overdrive" class="tactile-btn btn-overdrive-off dock-boost-btn" type="button">
+            <span class="boost-bolt">⚡</span>
+            <span id="overdrive-label">×1 Обычн.</span>
+          </button>
+
+          <div class="selected-info-box">
+            <div id="selected-icon-wrap" class="selected-icon-wrap">
+              <img id="selected-icon-img" alt="" />
+            </div>
+            <div class="selected-text-wrap">
+              <div id="selected-item-title" class="selected-item-title">Печь с самоваром</div>
+              <div id="selected-item-sub" class="selected-item-sub">Нажмите, чтобы достать предмет:</div>
+              <div id="selected-producer-outputs" class="selected-outputs-strip hidden"></div>
+            </div>
+            <div id="selected-item-actions" class="selected-item-actions">
+              <button id="btn-chain-info" class="mini-dock-btn btn-sky" type="button">📖</button>
+              <button id="btn-store-item" class="mini-dock-btn btn-cream" type="button">🎒</button>
+              <button id="btn-sell-item" class="mini-dock-btn btn-rose hidden" type="button">🪙</button>
+              <button id="btn-pop-bubble-ad" class="mini-dock-btn btn-emerald hidden" type="button">[AD]</button>
+              <button id="btn-pop-bubble-coin" class="mini-dock-btn btn-amber hidden" type="button">🪙</button>
+            </div>
+          </div>
+
+          <button id="btn-bag-open" class="tactile-btn btn-wood dock-bag-btn" type="button">
+            <span class="bag-emoji">🎒</span>
+            <span id="bag-label-text" class="bag-btn-label">Кладовка</span>
+            <span id="bag-count-text" class="bag-count-pill">0/4</span>
+          </button>
+        </footer>
+      </section>
+    </main>
+  </div>
+
+  <!-- Full Dacha Renovation & 3-Style Picker Modal -->
+  <div id="modal-dacha" class="modal-backdrop hidden">
+    <div class="modal-card modal-dacha-card">
+      <div class="modal-head">
+        <div>
+          <h2 id="dacha-modal-title" class="modal-title">Новогодняя дача</h2>
+          <p id="dacha-modal-sub" class="modal-sub">Украшайте двор и дом к празднику!</p>
+        </div>
+        <div class="dacha-modal-wallet">
+          <span id="dacha-modal-stars" class="wallet-chip star-chip">★ 0</span>
+          <span id="dacha-modal-coins" class="wallet-chip coin-chip">🪙 60</span>
+        </div>
+      </div>
+
+      <div class="dacha-full-stage">
+        <canvas id="dacha-full-canvas" class="dacha-full-canvas"></canvas>
+      </div>
+
+      <div id="dacha-upgrades-strip" class="dacha-upgrades-strip"></div>
+
+      <div id="dacha-style-panel" class="dacha-style-panel">
+        <div id="dacha-selected-upg-title" class="dacha-selected-upg-title">🔥 Тепло камина</div>
+        <div id="dacha-style-swatches" class="dacha-style-swatches"></div>
+        <div id="dacha-prestige-box" class="dacha-prestige-box hidden">
+          <div id="dacha-prestige-title" class="dacha-prestige-title">🎆 Праздничное застолье — Уровень 1</div>
+          <div id="dacha-prestige-sub" class="dacha-prestige-sub">Вся дача украшена! Устраивайте праздник за лишние звёзды и получайте редкое угощение и +500 🏆!</div>
+        </div>
+        <div class="dacha-modal-actions">
+          <button id="btn-unlock-upgrade" class="tactile-btn btn-emerald btn-unlock-upg" type="button">Украсить</button>
+          <button id="btn-close-dacha" class="tactile-btn btn-cream" type="button">К полю</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Out-of-Energy / Refill Modal -->
+  <div id="modal-energy" class="modal-backdrop hidden">
+    <div class="modal-card modal-sm">
+      <div class="modal-hero-badge">⚡☕</div>
+      <h2 id="energy-modal-title" class="modal-title">Запас бодрости ⚡</h2>
+      <p id="energy-modal-sub" class="modal-sub">Горячий чай согреет и даст силы!</p>
+      <div class="modal-stack-btns">
+        <button id="btn-energy-welcome" class="tactile-btn btn-emerald pulse-cta hidden" type="button">👵 Подарок Бабы Вали: +55 ⚡ БЕСПЛАТНО!</button>
+        <button id="btn-energy-ad" class="tactile-btn btn-emerald pulse-cta" type="button">🎬 +50 ⚡ БЕСПЛАТНО (за видео)</button>
+        <button id="btn-energy-coin" class="tactile-btn btn-amber" type="button">+50 ⚡ за 90 🪙</button>
+        <button id="btn-energy-thermos" class="tactile-btn btn-sky" type="button">☕ Глоток из термоса (+15⚡)</button>
+        <button id="btn-close-energy" class="tactile-btn btn-cream" type="button">Закрыть</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pantry Storage Bag (Кладовка) Modal -->
+  <div id="modal-bag" class="modal-backdrop hidden">
+    <div class="modal-card modal-md">
+      <h2 id="bag-modal-title" class="modal-title">Дачная кладовка</h2>
+      <p id="bag-modal-sub" class="modal-sub">Нажмите на предмет, чтобы вернуть его на поле</p>
+      <div id="bag-slots-grid" class="bag-slots-grid"></div>
+      <div class="modal-row-btns">
+        <button id="btn-bag-expand-coin" class="tactile-btn btn-amber" type="button">+1 слот</button>
+        <button id="btn-bag-expand-ad" class="tactile-btn btn-emerald" type="button">+1 слот [AD]</button>
+      </div>
+      <button id="btn-close-bag" class="tactile-btn btn-cream full-w-btn" type="button">Закрыть</button>
+    </div>
+  </div>
+
+  <!-- Merge Chain / Recipe Guide Modal -->
+  <div id="modal-chain" class="modal-backdrop hidden">
+    <div class="modal-card modal-md">
+      <h2 id="chain-modal-title" class="modal-title">Из чего получается</h2>
+      <div id="chain-producer-banner" class="chain-producer-banner">
+        <img id="chain-producer-img" class="chain-producer-img" alt="" />
+        <div class="chain-producer-copy">
+          <strong id="chain-producer-name">Печь с самоваром ⚡</strong>
+          <span id="chain-producer-hint">Нажимайте на этот источник и соединяйте пары по порядку:</span>
+        </div>
+      </div>
+      <div id="chain-steps-list" class="chain-steps-grid"></div>
+      <div class="modal-stack-btns">
+        <button id="btn-chain-point-producer" class="tactile-btn btn-emerald full-w-btn" type="button">Показать этот источник на поле 👇</button>
+        <button id="btn-close-chain" class="tactile-btn btn-cream full-w-btn" type="button">Закрыть</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- New Producer Unlocked / Locked Preview Showcase Modal -->
+  <div id="modal-producer-unlock" class="modal-backdrop hidden">
+    <div class="modal-card modal-md">
+      <div class="dacha-intro-hosts">
+        <div class="dacha-host-portrait">
+          <img src="assets/sprites/char_dedushka.webp" alt="" />
+        </div>
+        <div class="dacha-intro-head-copy">
+          <span id="prod-unlock-kicker" class="dacha-intro-kicker">Новый источник открыт!</span>
+          <h2 id="prod-unlock-title" class="modal-title">Сундук с игрушками</h2>
+        </div>
+        <div class="dacha-host-portrait prod-hero-box">
+          <img id="prod-unlock-hero-img" alt="" />
+        </div>
+      </div>
+      <p id="prod-unlock-sub" class="dacha-intro-story"></p>
+      <div id="prod-unlock-chain-grid" class="chain-steps-grid"></div>
+      <button id="btn-prod-unlock-ok" class="tactile-btn btn-emerald pulse-cta full-w-btn" type="button">Показать на поле! 👇</button>
+    </div>
+  </div>
+
+  <!-- 4-Order Holiday Streak Chest Modal -->
+  <div id="modal-streak" class="modal-backdrop hidden">
+    <div class="modal-card modal-sm">
+      <div class="modal-hero-badge">🎁✨</div>
+      <h2 id="streak-modal-title" class="modal-title">Новогодний ларец!</h2>
+      <p id="streak-modal-sub" class="modal-sub">Вы выполнили 4 заказа подряд!</p>
+      <div class="streak-loot-showcase">
+        <div class="loot-pill">+75 🪙</div>
+        <div class="loot-item-card">
+          <img id="streak-bonus-img" alt="" />
+          <span id="streak-bonus-name">Чай с лимоном</span>
+        </div>
+      </div>
+      <div class="modal-stack-btns">
+        <button id="btn-streak-double" class="tactile-btn btn-emerald pulse-cta" type="button">Удвоить ×2 и +25 ⚡ (за видео 🎬)</button>
+        <button id="btn-streak-claim" class="tactile-btn btn-amber" type="button">Забрать подарки</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Leaderboard Modal -->
+  <div id="modal-leaderboard" class="modal-backdrop hidden">
+    <div class="modal-card modal-md">
+      <h2 id="lb-modal-title" class="modal-title">Рейтинг дачников</h2>
+      <p id="lb-modal-sub" class="modal-sub">Очки уюта 🏆 растут за заказы, постройки и застолья!</p>
+      <div id="lb-league-box" class="lb-league-box">
+        <div class="lb-league-top">
+          <span id="lb-league-badge" class="lb-league-badge">🪵 Деревянная лига</span>
+          <span id="lb-score-pill" class="lb-score-pill">🏆 60</span>
+        </div>
+        <div class="lb-league-bar-track">
+          <div id="lb-league-bar-fill" class="lb-league-bar-fill" style="width: 10%"></div>
+        </div>
+        <div id="lb-league-next" class="lb-league-next">До Серебряного двора: 60 / 1200 🏆</div>
+        <div id="lb-rival-hint" class="lb-rival-hint"></div>
+        <button id="btn-lb-claim-league" class="tactile-btn btn-emerald pulse-cta full-w-btn hidden" type="button"></button>
+      </div>
+      <div id="lb-auth-wrap" class="lb-auth-box hidden">
+        <p id="lb-auth-text"></p>
+        <button id="btn-lb-auth" class="tactile-btn btn-sky" type="button">Войти</button>
+      </div>
+      <div id="lb-entries-list" class="lb-entries-list"></div>
+      <button id="btn-close-lb" class="tactile-btn btn-cream full-w-btn" type="button">Закрыть</button>
+    </div>
+  </div>
+
+  <!-- 7-Day Holiday Dacha Gift Calendar Modal -->
+  <div id="modal-daily" class="modal-backdrop hidden">
+    <div class="modal-card modal-md">
+      <div class="dacha-intro-hosts">
+        <div class="dacha-host-portrait">
+          <img src="assets/sprites/char_babushka.webp" alt="" />
+        </div>
+        <div class="dacha-intro-head-copy">
+          <span id="dacha-daily-kicker" class="dacha-intro-kicker">Гостинцы каждый день</span>
+          <h2 id="dacha-daily-title" class="modal-title">Дачный календарь</h2>
+        </div>
+        <div class="dacha-host-portrait">
+          <img src="assets/sprites/char_dedushka.webp" alt="" />
+        </div>
+      </div>
+      <p id="dacha-daily-sub" class="dacha-intro-story">Заходите на дачу каждый день за бодростью ⚡, монетами и звёздами — накопленные дни не сгорают!</p>
+      <div id="dacha-daily-grid" class="dacha-daily-grid"></div>
+      <div id="dacha-daily-actions" class="modal-stack-btns">
+        <button id="btn-dacha-daily-double" class="tactile-btn btn-amber pulse-cta" type="button">Удвоить подарок ×2 (за видео 🎬)</button>
+        <button id="btn-dacha-daily-claim" class="tactile-btn btn-emerald" type="button">Забрать подарок дня! 🎁</button>
+      </div>
+      <div id="dacha-daily-claimed" class="dacha-daily-claimed hidden"></div>
+      <button id="btn-close-dacha-daily" class="tactile-btn btn-cream full-w-btn" type="button">Закрыть</button>
+    </div>
+  </div>
+
+  <!-- Story Intro & Visual How-To-Play Modal -->
+  <div id="modal-intro" class="modal-backdrop hidden">
+    <div class="modal-card modal-intro-dacha">
+      <div class="dacha-intro-hosts">
+        <div class="dacha-host-portrait">
+          <img src="assets/sprites/char_dedushka.webp" alt="" />
+        </div>
+        <div class="dacha-intro-head-copy">
+          <span id="dacha-intro-badge" class="dacha-intro-kicker">Новогодние каникулы</span>
+          <h2 id="dacha-intro-title" class="modal-title">Добро пожаловать на зимнюю дачу!</h2>
+        </div>
+        <div class="dacha-host-portrait">
+          <img src="assets/sprites/char_babushka.webp" alt="" />
+        </div>
+      </div>
+
+      <p id="dacha-intro-story" class="dacha-intro-story">
+        Мы приехали встречать Новый год за городом, а участок замело снегом и окошки ещё не горят! Давай наведём уют, накроем стол с самоваром и нарядим ёлку.
+      </p>
+
+      <div class="dacha-intro-steps">
+        <div class="dacha-intro-row">
+          <div class="dacha-intro-icons">
+            <img src="assets/sprites/gen_samovar_stove.webp" alt="" />
+            <span>➔</span>
+            <img src="assets/sprites/a1_tea_leaf.webp" alt="" />
+            <span>+</span>
+            <img src="assets/sprites/a1_tea_leaf.webp" alt="" />
+          </div>
+          <div class="dacha-intro-text">
+            <strong id="dacha-intro-r1-t">1. Создавай и соединяй</strong>
+            <span id="dacha-intro-r1-d">Нажимай на генераторы ⚡ и соединяй одинаковые предметы — так же разбивается лёд ❄️ у краёв!</span>
+          </div>
+        </div>
+
+        <div class="dacha-intro-row">
+          <div class="dacha-intro-icons">
+            <img src="assets/sprites/a2_cinnamon_spice.webp" alt="" />
+            <span>➔</span>
+            <span class="intro-star-pill">★ + 🪙</span>
+          </div>
+          <div class="dacha-intro-text">
+            <strong id="dacha-intro-r2-t">2. Выполняй просьбы соседей</strong>
+            <span id="dacha-intro-r2-d">Отдавай готовые угощения соседям и получай монеты и праздничные звёзды ★.</span>
+          </div>
+        </div>
+
+        <div class="dacha-intro-row">
+          <div class="dacha-intro-icons">
+            <img src="assets/sprites/prop_dressed_tree.webp" alt="" />
+            <img src="assets/sprites/prop_samovar_table.webp" alt="" />
+          </div>
+          <div class="dacha-intro-text">
+            <strong id="dacha-intro-r3-t">3. Преображай 3D-дачу</strong>
+            <span id="dacha-intro-r3-d">За звёзды открывай расчищенную дорожку, ёлку, фонари, самовар и выбирай любимый стиль!</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-stack-btns">
+        <button id="btn-dacha-intro-start" class="tactile-btn btn-emerald pulse-cta" type="button">На дачу! 🎄</button>
+        <button id="btn-dacha-intro-replay" class="tactile-btn btn-cream hidden" type="button">Включить подсказки обучения</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Non-blocking Guided Tutorial Coach Card & Animated 3D Hand -->
+  <div id="dacha-tut-banner" class="dacha-tut-banner hidden">
+    <img id="dacha-tut-avatar" class="dacha-tut-avatar" src="assets/sprites/char_dedushka.webp" alt="" />
+    <div class="dacha-tut-copy">
+      <span id="dacha-tut-step" class="dacha-tut-step">Обучение 1/4</span>
+      <span id="dacha-tut-text" class="dacha-tut-text">Нажми на тёплую печь с самоваром ⚡!</span>
+    </div>
+    <button id="btn-dacha-tut-skip" class="dacha-tut-skip" type="button" aria-label="Close">✕</button>
+  </div>
+
+  <div id="dacha-tut-hand" class="dacha-tut-hand hidden" aria-hidden="true">
+    <span class="dacha-tut-ring"></span>
+    <img src="assets/sprites/ui_hand_pointer.webp" alt="" draggable="false" />
+  </div>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
